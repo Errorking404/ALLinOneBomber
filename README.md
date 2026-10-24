@@ -11,5 +11,8 @@ git clone https://github.com/Errorking404/ALLinOneBomber.git
 cd ALLinOneBomber
 python3 index.py
 ```
+# New Feature
+Added a whatsapp pair code spammer too
+
 # Owner :
          Errorking404
