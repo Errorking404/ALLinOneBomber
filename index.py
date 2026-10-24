@@ -3,10 +3,13 @@ import time
 import os
 import sys
 
-"""
-Disclaimer:
-           This tool is made for learning purpose only.
-"""
+
+if os.path.exists("proxy.txt"):
+    os.remove("proxy.txt")
+    print("[*] Old proxy.txt deleted")
+
+
+
 try:
     import requests
 except ImportError:
@@ -14,10 +17,58 @@ except ImportError:
     subprocess.check_call([sys.executable, "-m", "pip", "install", "requests"])
     import requests
 
-import random
+# ---------- Proxy Fetcher ( max 100 + save ) ----------
+def fetch_proxies():
+    proxy_urls = [
+        "https://raw.githubusercontent.com/thelegendofthecow/proxy-list/main/free.txt",
+        "https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/http.txt",
+        "https://raw.githubusercontent.com/hookzof/socks5_list/master/proxy.txt"
+    ]
+    raw_proxies = set()
+    for url in proxy_urls:
+        try:
+            res = requests.get(url, timeout=5)
+            if res.status_code == 200:
+                for line in res.text.splitlines():
+                    line = line.strip()
+                    if line and ":" in line:
+                        raw_proxies.add(line)
+        except Exception:
+            continue
+    return list(raw_proxies)
 
+def test_proxy(proxy, working_list):
+    test_url = "http://httpbin.org/ip"
+    proxies = {"http": f"http://{proxy}", "https": f"http://{proxy}"}
+    try:
+        response = requests.get(test_url, proxies=proxies, timeout=3)
+        if response.status_code == 200:
+            working_list.append(f"http://{proxy}")
+    except Exception:
+        pass
+
+def get_working_proxies(max_count=100):
+    raw_list = fetch_proxies()
+    working_proxies = []
+    
+    with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
+        futures = []
+        for proxy in raw_list[:300]:
+            futures.append(executor.submit(test_proxy, proxy, working_proxies))
+        concurrent.futures.wait(futures)
+    
+    # trim to max_count and save
+    final = working_proxies[:max_count]
+    with open("proxy.txt", "w") as f:
+        for p in final:
+            f.write(p + "\n")
+    return final
+
+# Get 100 proxies and save
+# proxies = get_working_proxies(max_count=100)
+
+# ---------- Your integration part (DO NOT EDIT) ----------
 PROXY_FILE = "proxy.txt"
-
 
 def _load_proxy():
     try:
@@ -30,9 +81,7 @@ def _load_proxy():
     except:
         return None
 
-
 _original_request = requests.sessions.Session.request
-
 
 def _patched_request(self, method, url, **kwargs):
     if "proxies" not in kwargs:
@@ -41,8 +90,8 @@ def _patched_request(self, method, url, **kwargs):
             kwargs["proxies"] = {"http": proxy, "https": proxy}
     return _original_request(self, method, url, **kwargs)
 
-
 requests.sessions.Session.request = _patched_request
+
 """
 The above code (proxy integration) is from Meta ai. Make sure not to edit this part.
 
@@ -91,8 +140,10 @@ def smsboom():
                 resp = requests.get(url, timeout=100)
                 resp.raise_for_status()  # throws error if status is 4xx or 5xx
                 print(f"{g}{i}, Bomb hit the Target.{r}")
+                break
             except requests.exceptions.ConnectionError:
                 print(f"No connection. Retrying {att}")
+                continue
         # data = resp.json()
         # print(data)
 
