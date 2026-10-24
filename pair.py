@@ -1,6 +1,8 @@
 import requests
 import time
 
+
+
 url = "https://whatsbot.hostify.co.zw/api/pair"
 headers = {
     "User-Agent": "Mozilla/5.0 (Linux; Android 13; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Mobile Safari/537.36",
@@ -30,8 +32,8 @@ def pair(number):
 
 
 number = int(input("Enter number. e.g:923xxx"))
-
-for i in range(99999):
+lim = input("Enter limit. e.g: 500:")
+for i in range(1,lim + 1):
     print(f"\nAttempt {i+1} for {number}...")
     result = pair(number)
     if result:
